@@ -1,0 +1,71 @@
+/* 
+Super dark - #000000
+Grey #212121
+#303030
+#424242
+
+*/
+
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat');
+
+#LoginPageTitle{
+    font-family: 'Montserrat', sans-serif;
+}
+
+#LoginPageButton{
+    font-family: 'Montserrat', sans-serif;
+    padding: 20px 25px;
+    font-size: 1.25em;
+    height: 55px;
+    -webkit-transition: all 0.35s ease;
+    -moz-transition: all 0.35s ease;
+    -o-transition: all 0.35s ease;
+    transition: all 0.35s ease;
+    background-color: #2c3e50;
+    position: relative;
+    color: #fff;
+    border: 1px solid;
+    margin: 5px;
+    padding: 10px 25px;
+    text-decoration: none;
+    display: block;
+    outline: none;
+    line-height: 100%;
+    overflow: hidden;
+    height: 40px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-border-bottom-left-radius: 15px;
+    -moz-border-bottom-left-radius: 15px;
+    -o-border-bottom-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    -webkit-border-top-right-radius: 15px;
+    -moz-border-top-right-radius: 15px;
+    -o-border-top-right-radius: 15px;
+    border-top-right-radius: 15px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-bottom-right-radius: 5px;
+    -o-border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -moz-border-top-left-radius: 5px;
+    -o-border-top-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+#LoginPageButton:hover {
+    margin-top: -2px;
+    background: #f2f2f2;
+    color: #2c3e50;
+  }
+
+#LoginPageContainer{
+    background: #303030;
+}
+
+html{
+    background: #303030;
+}

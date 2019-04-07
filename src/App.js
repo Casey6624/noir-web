@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
+import LoginScreen from "./Components/LoginScreen/LoginScreen"
 
 const App = props => {
 
-  let [greeting, setGreeting] = useState("Yoooo")
-
-
     return (
       <div className="App">
-        <p>{greeting}</p>
+        <LoginScreen />
       </div>
     );
 }
