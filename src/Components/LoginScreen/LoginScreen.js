@@ -1,8 +1,10 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 import * as Msal from 'msal';
 
 import "./LoginScreen.css"
+
+import applicationConfig from "./appConfig"
 
 export default function LoginScreen(props){
 
@@ -10,23 +12,30 @@ export default function LoginScreen(props){
 
     let [jsonData, setJsonData] = useState("")
 
-    var applicationConfig = {
-        clientID: "edaa9aec-1db8-4991-b21d-524c1e5cffba",
-        authority: "https://login.microsoftonline.com/common",
-        graphScopes: ["user.read"],
-        graphEndpoint: "https://graph.microsoft.com/v1.0/me"
-    };
+    function getMessages(){
+        let getMessageAPI = "https://outlook.office.com/api/v2.0/me/messages"
 
-    var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, acquireTokenRedirectCallBack,
-        {storeAuthStateInCookie: true, cacheLocation: "localStorage"});
+        fetch(getMessageAPI)
+        .then(res => res.json())
+        .then(data => {
+            console.log(data)
+        })
+    }
 
-        console.log(myMSALObj)
+    var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, acquireTokenRedirectCallBack, {storeAuthStateInCookie: true, cacheLocation: "localStorage"});
+
+
+    useEffect(function(){
+    
+            console.log(myMSALObj)
+    }, [])
 
     function signIn() {
         myMSALObj.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
             //Login Success
             showWelcomeMessage();
             acquireTokenPopupAndCallMSGraph();
+            getMessages()
         }, function (error) {
             console.log(error);
         });
@@ -70,8 +79,8 @@ export default function LoginScreen(props){
     }
 
     function showWelcomeMessage() {
-        setWelcome = `Welcome   ${myMSALObj.getUser().name}`
-        var loginbutton = document.getElementById('SignIn');
+        let welcomeName = myMSALObj.getUser().name
+        setWelcome(`Welcome ${welcomeName}`)
     }
 
     // This function can be removed if you do not need to support IE
@@ -97,33 +106,6 @@ export default function LoginScreen(props){
             console.log("token type is:"+tokenType);
      } 
 
-    }
-
-    // Browser check variables
-    var ua = window.navigator.userAgent;
-    var msie = ua.indexOf('MSIE ');
-    var msie11 = ua.indexOf('Trident/');
-    var msedge = ua.indexOf('Edge/');
-    var isIE = msie > 0 || msie11 > 0;
-    var isEdge = msedge > 0;
-
-    //If you support IE, our recommendation is that you sign-in using Redirect APIs
-    //If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check 
-    if (!isIE) {
-        if (myMSALObj.getUser()) {// avoid duplicate code execution on page load in case of iframe and popup window.
-            showWelcomeMessage();
-            acquireTokenPopupAndCallMSGraph();
-        }
-    }
-    else {
-        document.getElementById("SignIn").onclick = function () {
-            myMSALObj.loginRedirect(applicationConfig.graphScopes);
-        };
-
-        if (myMSALObj.getUser() && !myMSALObj.isCallback(window.location.hash)) {// avoid duplicate code execution on page load in case of iframe and popup window.
-            showWelcomeMessage();
-            acquireTokenRedirectAndCallMSGraph();
-        }
     }
 
     return(
