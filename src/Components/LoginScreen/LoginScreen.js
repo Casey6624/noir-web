@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 
 import * as Msal from 'msal';
 
@@ -8,12 +8,12 @@ import applicationConfig from "./appConfig"
 
 export default function LoginScreen(props){
 
-    let [welcome, setWelcome] = useState("")
+    let [userObj, setUserObj] = useState({})
 
-    let [jsonData, setJsonData] = useState("")
+    let [mailFolders, setMailFolders] = useState({})
 
     function getMessages(){
-        let getMessageAPI = "https://outlook.office.com/api/v2.0/me/messages"
+        let getMessageAPI = "https://graph.microsoft.com/v1.0/me/messages"
 
         fetch(getMessageAPI)
         .then(res => res.json())
@@ -22,22 +22,56 @@ export default function LoginScreen(props){
         })
     }
 
-    var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, acquireTokenRedirectCallBack, {storeAuthStateInCookie: true, cacheLocation: "localStorage"});
+    function getMailFolders(){
+        console.log()
+        let getMessagesGraphEndpoint = "https://graph.microsoft.com/v1.0/me/mailFolders"
+        myMSALObj.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+            console.log(`Access Token is ${accessToken}`)
+            callMSGraph(getMessagesGraphEndpoint, accessToken, getMailFoldersCallback);
+        }, function (error) {
+            console.log(error);
+            // Call acquireTokenPopup (popup window) in case of acquireTokenSilent failure due to consent or interaction required ONLY
+            if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
+                myMSALObj.acquireTokenPopup(applicationConfig.graphScopes).then(function (accessToken) {
+                    console.log(`Access Token is ${accessToken}`)
+                    callMSGraph(getMessagesGraphEndpoint, accessToken, getMailFoldersCallback);
+                }, function (error) {
+                    console.log(error);
+                });
+            }
+        });
+    }
+
+    function getMailFoldersCallback(data){
+        console.log(data)
+    }
+
+    function getMostRecentMessage(){
+        let API_URL = "https://graph.microsoft.com/v1.0/me/mailfolders/inbox/messages"
+        myMSALObj.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
+            fetch(API_URL, {
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(err => console.log(err))
+        })
+    }
 
 
-    useEffect(function(){
     
-            console.log(myMSALObj)
-    }, [])
+
+    var myMSALObj = new Msal.UserAgentApplication(applicationConfig.clientID, applicationConfig.authority, acquireTokenRedirectCallBack, {storeAuthStateInCookie: true, cacheLocation: "localStorage"});
 
     function signIn() {
         myMSALObj.loginPopup(applicationConfig.graphScopes).then(function (idToken) {
             //Login Success
-            showWelcomeMessage();
             acquireTokenPopupAndCallMSGraph();
-            getMessages()
         }, function (error) {
-            console.log(error);
+            console.log(`Couldn't contact API! ${error}`);
         });
     }
 
@@ -75,26 +109,9 @@ export default function LoginScreen(props){
 
     function graphAPICallback(data) {
         //Display user data on DOM
-        setJsonData = JSON.stringify(data, null, 2); 
-    }
+        console.table(data)
 
-    function showWelcomeMessage() {
-        let welcomeName = myMSALObj.getUser().name
-        setWelcome(`Welcome ${welcomeName}`)
-    }
-
-    // This function can be removed if you do not need to support IE
-    function acquireTokenRedirectAndCallMSGraph() {
-        //Call acquireTokenSilent (iframe) to obtain a token for Microsoft Graph
-        myMSALObj.acquireTokenSilent(applicationConfig.graphScopes).then(function (accessToken) {
-          callMSGraph(applicationConfig.graphEndpoint, accessToken, graphAPICallback);
-        }, function (error) {
-            console.log(error);
-            //Call acquireTokenRedirect in case of acquireToken Failure
-            if (error.indexOf("consent_required") !== -1 || error.indexOf("interaction_required") !== -1 || error.indexOf("login_required") !== -1) {
-                myMSALObj.acquireTokenRedirect(applicationConfig.graphScopes);
-            }
-        }); 
+        setUserObj(data)
     }
 
     function acquireTokenRedirectCallBack(errorDesc, token, error, tokenType)
@@ -110,14 +127,19 @@ export default function LoginScreen(props){
 
     return(
         <div id="LoginPageContainer">
-        <p>{welcome}</p>
             <h1 id="LoginPageTitle">Noir Mail Login</h1>
-            <p>{jsonData}</p>
+            <p>{userObj.displayName}</p>
+            <p>{userObj.mobilePhone}</p>
             <button id="LoginPageButton" onClick={signIn}>Sign In With A Microsoft Account</button>
             <br />
             <button id="LoginPageButton" onClick={signOut}>Sign Out</button>
+            <br />
+            <button id="LoginPageButton" onClick={getMailFolders}>Get Mail Folders</button>
+            <br />
+            <button id="LoginPageButton" onClick={getMostRecentMessage}>Get Most Recent Email</button>
         </div>
     )
 
 
 }
+
